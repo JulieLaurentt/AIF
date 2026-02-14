@@ -14,7 +14,7 @@ def load_and_predict():
 
     # Load and display the image
     img = Image.open(file_path)
-    img = img.resize((600, 600))  # resize for display
+    img = img.resize((300, 300))  # resize for display
     img_tk = ImageTk.PhotoImage(img)
     label_image.config(image=img_tk)
     label_image.image = img_tk
@@ -24,11 +24,25 @@ def load_and_predict():
     img.save(img_binary, format="PNG")
 
     # Send request to the API
-    response = requests.post("http://127.0.0.1:5075/predict", data=img_binary.getvalue())
-    predicted_label = response.json()["prediction"]
-
-    # Display predicted label
-    label_text.config(text=f"Predicted Label: {predicted_label}")
+    try:
+        response = requests.post("http://127.0.0.1:5075/predict", data=img_binary.getvalue())
+        
+        if response.status_code == 200:
+            predicted_label = response.json()["prediction"]
+            # Mise à jour avec couleur et police visible
+            label_text.config(
+                text=f"Predicted Label: {predicted_label}", 
+                fg="red", 
+                font=("Arial", 16, "bold")
+            )
+            # Force le rafraîchissement de l'interface
+            label_text.update_idletasks()
+        else:
+            label_text.config(text=f"Erreur API: {response.status_code}", fg="orange")
+            
+    except Exception as e:
+        label_text.config(text="Erreur de connexion", fg="orange")
+        print(f"Erreur : {e}")
 
 # Set up main GUI window
 root = tk.Tk()
